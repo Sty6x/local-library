@@ -20,3 +20,11 @@ AuthorSchema.virtual('name').get(function() {
   }
   return fullname
 })
+
+
+AuthorSchema.virtual('url').get(function(){
+  return `/catalog/author/${this._id}`
+})
+
+module.exports = mongoose.model("Author", AuthorSchema)
+
