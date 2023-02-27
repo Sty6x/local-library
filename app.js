@@ -6,6 +6,7 @@ var logger = require("morgan");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
+const catalogRouter = require("./routes/catalog");
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
 const MongoDB =
@@ -32,6 +33,7 @@ app.use((req, res, next) => {
 });
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/catalog", catalogRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -49,22 +51,4 @@ app.use(function (err, req, res, next) {
 	res.render("error");
 });
 
-const Schema = mongoose.Schema;
-const someSchema = new Schema({ name: String, title: String, reviews: Number });
-const model = mongoose.model("authors", someSchema);
-const modelInstance = new model({
-	name: "ME",
-	title: "CSGO",
-	reviews: 0.1,
-});
-modelInstance.save((err, data) => {
-	if (err) return console.log(err);
-	console.log(data);
-});
-
-modelInstance.name = "New Name";
-modelInstance.save((err, data) => {
-	if (err) return console.log(err);
-	console.log(data);
-});
 module.exports = app;
