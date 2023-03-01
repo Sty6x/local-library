@@ -81,7 +81,7 @@ exports.author_create_post = [
 		if (!errors.isEmpty()) {
 			res.render("author_form", {
 				title: "Create Author",
-				author: req.body,
+				// author: req.body,
 				errors: errors.array(),
 			});
 			return;
@@ -112,20 +112,126 @@ exports.author_create_post = [
 
 // Display Author delete form on GET.
 exports.author_delete_get = (req, res) => {
-	res.send("NOT IMPLEMENTED: Author delete GET");
+	async.parallel(
+		{
+			author(callback) {
+				Author.findById(req.params.id).exec(callback);
+			},
+			author_books(callback) {
+				Book.find({ author: req.params.id }).exec(callback);
+			},
+		},
+		(err, results) => {
+			err && next(err);
+			if (results.author == null) {
+				res.redirect("/catalog/authors");
+			}
+			res.render("author_delete", {
+				title: "Delete Author",
+				author: results.author,
+				author_books: results.author_books,
+			});
+		}
+	);
 };
 
 // Handle Author delete on POST.
-exports.author_delete_post = (req, res) => {
-	res.send("NOT IMPLEMENTED: Author delete POST");
+// Handle Author delete on POST.
+exports.author_delete_post = (req, res, next) => {
+	async.parallel(
+		{
+			author(callback) {
+				Author.findById(req.body.authorid).exec(callback);
+			},
+			authors_books(callback) {
+				Book.find({ author: req.body.authorid }).exec(callback);
+			},
+		},
+		(err, results) => {
+			if (err) {
+				return next(err);
+			}
+			// Success
+			if (results.authors_books.length > 0) {
+				// Author has books. Render in same way as for GET route.
+				res.render("author_delete", {
+					title: "Delete Author",
+					author: results.author,
+					author_books: results.authors_books,
+				});
+				return;
+			}
+			// Author has no books. Delete object and redirect to the list of authors.
+			Author.findByIdAndRemove(req.body.authorid, (err) => {
+				if (err) {
+					return next(err);
+				}
+				// Success - go to author list
+				res.redirect("/catalog/authors");
+			});
+		}
+	);
 };
 
 // Display Author update form on GET.
-exports.author_update_get = (req, res) => {
-	res.send("NOT IMPLEMENTED: Author update GET");
+exports.author_update_get = (req, res, next) => {
+	Author.findById(req.params.id).exec((err, author) => {
+		console.log(author);
+		if (err) {
+			return next(err);
+		}
+		res.render("author_form", {
+			title: "Update Author",
+			author: author,
+		});
+	});
 };
 
 // Handle Author update on POST.
-exports.author_update_post = (req, res) => {
-	res.send("NOT IMPLEMENTED: Author update POST");
-};
+exports.author_update_post = [
+	body("first_name", "First name should not be empty")
+		.trim()
+		.isLength({ min: 1 })
+		.escape(),
+	body("family_name", "Family name should not be empty")
+		.trim()
+		.isLength({ min: 1 })
+		.escape(),
+	body("date_of_birth").isISO8601().toDate(),
+	body("date_of_death").isISO8601().toDate(),
+
+	(req, res, next) => {
+		const errors = validationResult(req);
+		const new_author = new Author({
+			first_name: req.body.first_name,
+			family_name: req.body.family_name,
+			date_of_birth: req.body.date_of_birth,
+			date_of_death: req.body.date_of_death,
+			_id: req.params.id,
+		});
+
+		if (!errors.isEmpty) {
+			Author.findById(req.params.id).exec((err, author) => {
+				if (err) {
+					return next(err);
+				}
+				res.render("author_form", {
+					title: "Update Author",
+					author,
+					errors: errors.array(),
+				});
+			});
+		}
+		Author.findByIdAndUpdate(
+			req.params.id,
+			new_author,
+			{},
+			(err, update_author) => {
+				if (err) {
+					return next(err);
+				}
+				res.redirect(update_author.url);
+			}
+		);
+	},
+];
