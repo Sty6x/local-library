@@ -13,14 +13,14 @@ block content
 
     div.form-group
       label(for='imprint') Imprint:
-      input#imprint.form-control(type='text' placeholder='Publisher and date information' name='imprint' required='true' value=(undefined===bookinstance ? '' : bookinstance.imprint))
+      input#imprint.form-control(type='text' placeholder='Publisher and date information' name='imprint' value=(undefined===bookinstance ? '' : bookinstance.imprint))
     div.form-group
       label(for='due_back') Date when book available:
       input#due_back.form-control(type='date' name='due_back' value=(undefined===bookinstance ? '' : bookinstance.due_back))
 
     div.form-group
       label(for='status') Status:
-      select#status.form-control(type='select' placeholder='Select status' name='status' required='true')
+      select#status.form-control(type='select' placeholder='Select status' name='status' required='true') dawdaw
         option(value='Maintenance') Maintenance
         option(value='Available') Available
         option(value='Loaned') Loaned
