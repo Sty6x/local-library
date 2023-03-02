@@ -1,19 +1,23 @@
+require("dotenv").config();
 var createError = require("http-errors");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-
+const compression = require("compression");
+const helmet = require("helmet");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 const catalogRouter = require("./routes/catalog");
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
-const MongoDB =
+const mongo_db_uri =
 	"mongodb+srv://francis:demo1234@cluster0.kqzcqhx.mongodb.net/localLibrary?retryWrites=true&w=majority";
+const MongoDB = process.env.MONGODB_URI || mongo_db_uri;
 
 var app = express();
 
+app.use(helmet());
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "pug");
@@ -31,6 +35,8 @@ app.use((req, res, next) => {
 	connectToDB().catch((err) => console.log(err));
 	next();
 });
+
+app.use(compression());
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/catalog", catalogRouter);
